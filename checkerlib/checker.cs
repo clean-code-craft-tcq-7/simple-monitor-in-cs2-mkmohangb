@@ -2,9 +2,14 @@
 using System;
 using System.Diagnostics;
 
-public class Checker
+public interface ICheckerDisplay
 {
-    private static void displayVitalsAlert(string message)
+    void DisplayVitalsAlert(string message);
+}
+
+public class ConsoleCheckerDisplay : ICheckerDisplay
+{
+    public void DisplayVitalsAlert(string message)
     {
         Console.WriteLine(message);
         for (int i = 0; i < 6; i++)
@@ -15,22 +20,51 @@ public class Checker
             System.Threading.Thread.Sleep(1000);
         }
     }
+}
+public class Checker
+{
+    private static ICheckerDisplay _display = new ConsoleCheckerDisplay();
+
+    public Checker(ICheckerDisplay display)
+    {
+        _display = display;
+    }
+
+    private static bool isVitalInRange(float max, float min, float value)
+    {
+        return value >= min && value <= max;
+    }
+
+    private static bool alertWhenNotInRange(float max, float min, float value, string message)
+    {
+        if (!isVitalInRange(max, min, value))
+        {
+            _display.DisplayVitalsAlert(message);
+            return false;
+        }
+        return true;
+    }
+
+    private static bool isTemperatureOk(float temperature)
+    {
+        return alertWhenNotInRange(102, 95, temperature, "Temperature critical!");
+    }
+
+    private static bool isPulseRateOk(int pulseRate)
+    {
+        return alertWhenNotInRange(100, 60, pulseRate, "Pulse Rate is out of range!");
+    }
+
+    private static bool isSpo2Ok(int spo2)
+    {
+        return alertWhenNotInRange(100, 90, spo2, "Oxygen Saturation is below normal!");
+    }
 
     public static bool VitalsOk(float temperature, int pulseRate, int spo2)
     {
-        if(temperature >102 || temperature < 95)
+        if (!isTemperatureOk(temperature) || !isPulseRateOk(pulseRate) || !isSpo2Ok(spo2))
         {
-            displayVitalsAlert("Temperature critical!");
-            return false;
-        }
-        else if (pulseRate < 60 || pulseRate > 100)
-        {
-            displayVitalsAlert("Pulse Rate is out of range!");
-            return false;
-        }
-        else if (spo2 < 90)
-        {
-            displayVitalsAlert("Oxygen Saturation is below normal!");
+            Console.WriteLine("Vitals are not within normal range");
             return false;
         }
         Console.WriteLine("Vitals received within normal range");
