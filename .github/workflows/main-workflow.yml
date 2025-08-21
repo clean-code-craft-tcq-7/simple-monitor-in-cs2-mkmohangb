@@ -1,0 +1,39 @@
+name: Build Run
+
+on: [push, pull_request]
+
+env:
+  DOTNET_VERSION: '6.0.401'
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Debug]
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Run tests and collect coverage
+      run: cd checkertest && dotnet test --collect:"XPlat Code Coverage"
+
+    - name: Install coverage report generator
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+    - name: Make coverage report
+      run: cd checkertest && reportgenerator "-reports:TestResults\*\*.xml" "-targetdir:..\coverage"
+
+    - name: Create coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage
+        path: coverage
+        retention-days: 7
