@@ -62,13 +62,8 @@ public class Checker
 
     public static bool VitalsOk(float temperature, int pulseRate, int spo2)
     {
-        if (!isTemperatureOk(temperature) || !isPulseRateOk(pulseRate) || !isSpo2Ok(spo2))
-        {
-            Console.WriteLine("Vitals are not within normal range");
-            return false;
-        }
-        Console.WriteLine("Vitals received within normal range");
-        Console.WriteLine("Temperature: {0} Pulse: {1}, SO2: {2}", temperature, pulseRate, spo2);
-        return true;
+        return isTemperatureOk(temperature) &&
+               isPulseRateOk(pulseRate) &&
+               isSpo2Ok(spo2);
     }
 }
